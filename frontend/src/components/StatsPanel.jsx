@@ -8,9 +8,9 @@ const TOTAL_COUNTRIES = 195;
  * Sol üst köşe istatistik paneli.
  *
  * Masaüstü : tam glassmorphism panel.
- * Mobil    : yuvarlak Globe ikonu → tıklayınca kayan kart.
+ * Mobil    : yuvarlak Globe ikonu → tıklayınca aşağıdan kayan bottom-sheet.
  *
- * Mobil modal React Portal ile document.body'ye render edilir;
+ * Mobil bottom-sheet React Portal ile document.body'ye render edilir;
  * böylece App.jsx'teki "absolute z-10" stacking context'i kırar
  * ve z-index savaşı tamamen sona erer.
  *
@@ -101,51 +101,65 @@ export default function StatsPanel({ allVideos }) {
       </button>
 
       {/* ──────────────────────────────────────────────────────────────────────
-          MOBİL: Portal ile body'ye render — stacking context tamamen kırılır.
-          Backdrop z-[100] > başlık z-[30]; kart z-[110] > backdrop.
+          MOBİL: Portal ile body'ye render — bottom-sheet, aşağıdan yukarı kayar.
+          Backdrop z-[75], sheet z-[80].
+          Her zaman DOM'da — translate ile açılıp kapanır (animasyon için).
       ────────────────────────────────────────────────────────────────────── */}
-      {open && createPortal(
+      {createPortal(
         <>
-          {/* Backdrop: küreyi, başlığı ve sloganı tamamen örter */}
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
+            className={[
+              'fixed inset-0 z-[75] bg-black/60 backdrop-blur-md',
+              'transition-opacity duration-300',
+              open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+            ].join(' ')}
             onClick={() => setOpen(false)}
           />
 
-          {/* Modal kart: Dynamic Island'ın hemen altında, tertemiz */}
+          {/* Bottom-sheet */}
           <div
-            className="fixed z-[110] top-20 left-4 rounded-2xl px-4 py-3.5 min-w-[260px]
-                       bg-[rgba(8,12,26,0.93)] backdrop-blur-[28px]
-                       border border-white/[0.13]
-                       shadow-[0_8px_48px_rgba(0,0,0,0.7)]"
+            className={[
+              'fixed bottom-0 left-0 right-0 z-[80]',
+              'rounded-t-2xl',
+              'bg-[rgba(8,12,26,0.96)] backdrop-blur-[28px]',
+              'border-t border-x border-white/[0.13]',
+              'shadow-[0_-8px_48px_rgba(0,0,0,0.7)]',
+              'transition-transform duration-500',
+              'ease-[cubic-bezier(0.32,0.72,0,1)]',
+              open ? 'translate-y-0' : 'translate-y-full',
+            ].join(' ')}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Kapat */}
-            <div className="flex justify-end mb-2">
+            {/* Handle + Kapat butonu */}
+            <div className="relative flex justify-center pt-3 pb-2">
+              <div className="w-10 h-[3px] rounded-full bg-white/20" />
               <button
                 onClick={() => setOpen(false)}
-                className="text-white/30 hover:text-white/65 transition-colors"
+                className="absolute right-4 top-3 text-white/30 hover:text-white/65 transition-colors"
                 aria-label="Kapat"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
 
             {/* İstatistikler */}
-            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1.5">
-              <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
-              <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
-              <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
-              <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
-            </div>
-
-            <div className="mt-2.5 pl-1">
-              <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
-                <Compass size={11} />
-                Son Keşif
+            <div className="px-5 pb-2">
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1.5">
+                <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
+                <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
+                <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
+                <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
               </div>
-              <div className="text-white/80 text-[12px] font-semibold">
-                {stats.lastDiscovery}
+
+              <div className="mt-3 pl-1 pb-6">
+                <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
+                  <Compass size={11} />
+                  Son Keşif
+                </div>
+                <div className="text-white/80 text-[12px] font-semibold">
+                  {stats.lastDiscovery}
+                </div>
               </div>
             </div>
           </div>
