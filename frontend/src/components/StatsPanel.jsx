@@ -4,15 +4,6 @@ import { Globe, Map, Clock, Compass, Video, X } from 'lucide-react';
 
 const TOTAL_COUNTRIES = 195;
 
-/**
- * Sol üst köşe istatistik paneli.
- *
- * Masaüstü : tam glassmorphism panel.
- * Mobil    : yuvarlak Globe ikonu → tıklayınca yüzen kart (ManifestoPanel ile aynı yapı).
- *
- * Props:
- *   allVideos — final_map_with_coords.json'dan gelen ham video dizisi
- */
 export default function StatsPanel({ allVideos }) {
   const [open, setOpen] = useState(false);
 
@@ -50,9 +41,7 @@ export default function StatsPanel({ allVideos }) {
 
   return (
     <>
-      {/* ──────────────────────────────────────────────────────────────────────
-          MASAÜSTÜ: tam panel (pointer-events-none → harita sürüklenebilir)
-      ────────────────────────────────────────────────────────────────────── */}
+      {/* ── MASAÜSTÜ: tam panel — pointer-events-none → harita sürüklenebilir ── */}
       <div className="hidden md:block pointer-events-none select-none w-max">
         <div className="mb-2">
           <h1 className="text-3xl font-bold tracking-tight text-white leading-tight whitespace-nowrap">
@@ -81,9 +70,7 @@ export default function StatsPanel({ allVideos }) {
         </div>
       </div>
 
-      {/* ──────────────────────────────────────────────────────────────────────
-          MOBİL: yuvarlak Globe butonu
-      ────────────────────────────────────────────────────────────────────── */}
+      {/* ── MOBİL: yuvarlak Globe butonu ─────────────────────────────────────── */}
       <button
         onClick={() => setOpen(true)}
         aria-label="İstatistikler"
@@ -96,10 +83,7 @@ export default function StatsPanel({ allVideos }) {
         <Globe size={17} />
       </button>
 
-      {/* ──────────────────────────────────────────────────────────────────────
-          MOBİL: Portal ile body'ye render — ManifestoPanel ile aynı yapı.
-          Backdrop z-[100] > başlık z-[30]; kart z-[110] > backdrop.
-      ────────────────────────────────────────────────────────────────────── */}
+      {/* ── MOBİL: Portal → ManifestoPanel ile birebir aynı yapı/koordinat ───── */}
       {open && createPortal(
         <>
           {/* Backdrop z-[100]: küreyi ve başlığı (z-[30]) tamamen örter */}
@@ -108,38 +92,40 @@ export default function StatsPanel({ allVideos }) {
             onClick={() => setOpen(false)}
           />
 
-          {/* Kart z-[110]: ManifestoPanel ile aynı konum, renk ve stil */}
+          {/* Kart — ManifestoPanel ile aynı konum ve stil */}
           <div className="fixed z-[110] inset-x-4 bottom-[5.5rem] max-w-sm mx-auto
                           rounded-2xl px-5 py-4
                           bg-[rgba(8,12,26,0.93)] backdrop-blur-[28px]
                           border border-white/[0.13]
                           shadow-[0_8px_48px_rgba(0,0,0,0.7)]
                           animate-in fade-in zoom-in-95 duration-200">
+
+            {/* X — absolute, z-[120] ile her zaman içeriğin üstünde */}
             <button
               onClick={() => setOpen(false)}
               aria-label="Kapat"
-              className="absolute top-4 right-4 z-[120] text-white/30 hover:text-white/65 transition-colors"
+              className="absolute top-3.5 right-3.5 z-[120] text-white/30 hover:text-white/65 transition-colors"
             >
               <X size={15} />
             </button>
 
-            {/* İstatistik satırları — pr-6 ile X butonuyla çakışma önlenir */}
-            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1 pr-6">
-              <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
-              <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
-              <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
-              <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
+            {/* İstatistik satırları — pr-8 ile X alanı korunur */}
+            <div className="pr-8">
+              <StatRow icon={<Globe size={13} />} label="Dünya Keşfi" value={stats.countryScore} />
+              <StatRow icon={<Map   size={13} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
+              <StatRow icon={<Clock size={13} />} label="Süre"        value={stats.archiveStr} />
+              <StatRow icon={<Video size={13} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
             </div>
 
-            {/* Son Keşif */}
-            <div className="mt-3 pl-1">
+            {/* Son Keşif — Manifesto imza bölümü gibi border-t ile ayrılır */}
+            <div className="mt-2.5 pt-2.5 border-t border-white/5">
               <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
                 <Compass size={11} />
                 Son Keşif
               </div>
-              <div className="text-white/80 text-xs font-light leading-[1.7]">
+              <p className="text-xs font-light text-white/78 leading-[1.7]">
                 {stats.lastDiscovery}
-              </div>
+              </p>
             </div>
           </div>
         </>,
@@ -154,15 +140,15 @@ function StatRow({ icon, label, value, noBorder = false }) {
   return (
     <div
       className={[
-        'flex items-center justify-between gap-4 py-[7px]',
+        'flex items-center justify-between gap-3 py-[6px]',
         noBorder ? '' : 'border-b border-white/[0.07]',
       ].join(' ')}
     >
-      <div className="flex items-center gap-1.5 text-white/42 text-[11px] uppercase tracking-[0.1em] whitespace-nowrap">
+      <div className="flex items-center gap-1.5 text-white/40 text-[11px] tracking-tight uppercase whitespace-nowrap">
         {icon}
         {label}
       </div>
-      <div className="text-white/85 text-[13px] font-medium text-right tabular-nums">
+      <div className="text-white/82 text-[11px] font-medium text-right tabular-nums tracking-tight">
         {value}
       </div>
     </div>
