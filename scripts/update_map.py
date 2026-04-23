@@ -121,7 +121,12 @@ def get_location_info_from_gemini(video_title, video_description):
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
     # Denenecek modeller (Sırayla)
-    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash"]
+    models_to_try = [
+        "gemini-flash-latest",     # En stabil alias
+        "gemini-2.5-flash",        # Mevcut standart model
+        "gemini-3-flash-preview",  # En yeni nesil önizleme
+        "gemini-2.0-flash"         # Yedek
+    ]
     
     prompt = f"""
     Analyze the following YouTube video title and description to identify the location.
