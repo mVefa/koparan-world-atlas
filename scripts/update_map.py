@@ -120,41 +120,37 @@ def fetch_new_videos(processed_ids):
 def get_location_info_from_gemini(video_title, video_description):
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
+    # Denenecek modeller (Sırayla)
+    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash"]
+    
     prompt = f"""
     Analyze the following YouTube video title and description to identify the location.
-
     Title: {video_title}
     Description: {video_description}
-
-    STRICT RULES:
-    1. 'city': Use the standard English name of the city. 
-       - IF YOU ARE NOT SURE about the specific city, write EXACTLY "Unknown".
-    2. 'country': Use ONLY the 3-letter ISO 3166-1 alpha-3 code (e.g., 'IDN', 'TUR').
-    3. 'country_name': Use the full English name of the country.
-    4. 'lat' & 'lng': Provide coordinates for the identified city.
-       - IF the city is "Unknown", provide the coordinates for the CAPITAL city of that country.
-       - EVEN IF you use capital coordinates, DO NOT write the capital name in the 'city' field if it was unknown.
-
     Return ONLY a JSON object:
     {{
-        "city": "string or Unknown",
-        "country": "string",
-        "country_name": "string",
+        "city": "English name or Unknown",
+        "country": "ISO-3",
+        "country_name": "English name",
         "lat": float,
         "lng": float
     }}
     """
-    
-    try:
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json")
-        )
-        return json.loads(response.text)
-    except Exception as e:
-        print(f"[HATA] Gemini analizi başarısız: {e}")
-        return None
+
+    for model_name in models_to_try:
+        try:
+            print(f"[BİLGİ] {model_name} ile analiz deneniyor...")
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"[UYARI] {model_name} başarısız oldu: {e}")
+            continue # Bir sonraki modeli dene
+            
+    return None
     
 def main():
     # 1. Mevcut veriyi yükle
