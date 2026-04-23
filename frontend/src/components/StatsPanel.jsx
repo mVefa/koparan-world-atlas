@@ -8,11 +8,7 @@ const TOTAL_COUNTRIES = 195;
  * Sol üst köşe istatistik paneli.
  *
  * Masaüstü : tam glassmorphism panel.
- * Mobil    : yuvarlak Globe ikonu → tıklayınca aşağıdan kayan bottom-sheet.
- *
- * Mobil bottom-sheet React Portal ile document.body'ye render edilir;
- * böylece App.jsx'teki "absolute z-10" stacking context'i kırar
- * ve z-index savaşı tamamen sona erer.
+ * Mobil    : yuvarlak Globe ikonu → tıklayınca yüzen kart (ManifestoPanel ile aynı yapı).
  *
  * Props:
  *   allVideos — final_map_with_coords.json'dan gelen ham video dizisi
@@ -89,7 +85,7 @@ export default function StatsPanel({ allVideos }) {
           MOBİL: yuvarlak Globe butonu
       ────────────────────────────────────────────────────────────────────── */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         aria-label="İstatistikler"
         className="md:hidden fixed bottom-5 left-16 z-10 w-10 h-10 rounded-full
                    bg-black/50 backdrop-blur-[16px] border border-white/10
@@ -101,65 +97,48 @@ export default function StatsPanel({ allVideos }) {
       </button>
 
       {/* ──────────────────────────────────────────────────────────────────────
-          MOBİL: Portal ile body'ye render — bottom-sheet, aşağıdan yukarı kayar.
-          Backdrop z-[75], sheet z-[80].
-          Her zaman DOM'da — translate ile açılıp kapanır (animasyon için).
+          MOBİL: Portal ile body'ye render — ManifestoPanel ile aynı yapı.
+          Backdrop z-[100] > başlık z-[30]; kart z-[110] > backdrop.
       ────────────────────────────────────────────────────────────────────── */}
-      {createPortal(
+      {open && createPortal(
         <>
-          {/* Backdrop */}
+          {/* Backdrop z-[100]: küreyi ve başlığı (z-[30]) tamamen örter */}
           <div
-            className={[
-              'fixed inset-0 z-[75] bg-black/60 backdrop-blur-md',
-              'transition-opacity duration-300',
-              open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-            ].join(' ')}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
 
-          {/* Bottom-sheet */}
-          <div
-            className={[
-              'fixed bottom-0 left-0 right-0 z-[80]',
-              'rounded-t-2xl',
-              'bg-[rgba(8,12,26,0.96)] backdrop-blur-[28px]',
-              'border-t border-x border-white/[0.13]',
-              'shadow-[0_-8px_48px_rgba(0,0,0,0.7)]',
-              'transition-transform duration-500',
-              'ease-[cubic-bezier(0.32,0.72,0,1)]',
-              open ? 'translate-y-0' : 'translate-y-full',
-            ].join(' ')}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Handle + Kapat butonu */}
-            <div className="relative flex justify-center pt-3 pb-2">
-              <div className="w-10 h-[3px] rounded-full bg-white/20" />
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute right-4 top-3 text-white/30 hover:text-white/65 transition-colors"
-                aria-label="Kapat"
-              >
-                <X size={16} />
-              </button>
+          {/* Kart z-[110]: ManifestoPanel ile aynı konum, renk ve stil */}
+          <div className="fixed z-[110] inset-x-4 bottom-[5.5rem] max-w-sm mx-auto
+                          rounded-2xl px-5 py-4
+                          bg-[rgba(8,12,26,0.93)] backdrop-blur-[28px]
+                          border border-white/[0.13]
+                          shadow-[0_8px_48px_rgba(0,0,0,0.7)]
+                          animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Kapat"
+              className="absolute top-3.5 right-3.5 text-white/30 hover:text-white/65 transition-colors"
+            >
+              <X size={15} />
+            </button>
+
+            {/* İstatistik satırları */}
+            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1">
+              <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
+              <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
+              <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
+              <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
             </div>
 
-            {/* İstatistikler */}
-            <div className="px-5 pb-2">
-              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1.5">
-                <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
-                <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
-                <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
-                <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
+            {/* Son Keşif */}
+            <div className="mt-3 pl-1">
+              <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
+                <Compass size={11} />
+                Son Keşif
               </div>
-
-              <div className="mt-3 pl-1 pb-6">
-                <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
-                  <Compass size={11} />
-                  Son Keşif
-                </div>
-                <div className="text-white/80 text-[12px] font-semibold">
-                  {stats.lastDiscovery}
-                </div>
+              <div className="text-white/80 text-xs font-light leading-[1.7]">
+                {stats.lastDiscovery}
               </div>
             </div>
           </div>
