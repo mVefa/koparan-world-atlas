@@ -1,0 +1,47 @@
+# --- İşletim Sistemi Dosyaları ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- Python & Sanal Ortamlar ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv/
+scripts/venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints
+
+# --- Node / React / Frontend ---
+node_modules/
+dist/
+build/
+web/dist/
+.eslintcache
+.stylelintcache
+
+# --- Gizli Veriler & Ortam Değişkenleri ---
+# (Kritik: API Key içeren dosyaların dışarı sızmasını engeller)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+web/.env
+
+# --- IDE & Editör Ayarları ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Log Dosyaları ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log

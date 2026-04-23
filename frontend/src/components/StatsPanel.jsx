@@ -1,0 +1,177 @@
+import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Globe, Map, Clock, Compass, Video, X } from 'lucide-react';
+
+const TOTAL_COUNTRIES = 195;
+
+/**
+ * Sol üst köşe istatistik paneli.
+ *
+ * Masaüstü : tam glassmorphism panel.
+ * Mobil    : yuvarlak Globe ikonu → tıklayınca kayan kart.
+ *
+ * Mobil modal React Portal ile document.body'ye render edilir;
+ * böylece App.jsx'teki "absolute z-10" stacking context'i kırar
+ * ve z-index savaşı tamamen sona erer.
+ *
+ * Props:
+ *   allVideos — final_map_with_coords.json'dan gelen ham video dizisi
+ */
+export default function StatsPanel({ allVideos }) {
+  const [open, setOpen] = useState(false);
+
+  const stats = useMemo(() => {
+    const uniqueISO3 = new Set(
+      allVideos
+        .map((v) => String(v.country || '').trim().toUpperCase())
+        .filter((c) => /^[A-Z]{3}$/.test(c))
+    );
+    const countryCount = uniqueISO3.size;
+    const countryPct   = ((countryCount / TOTAL_COUNTRIES) * 100).toFixed(1);
+    const countryScore = `${countryCount} / ${TOTAL_COUNTRIES} (%${countryPct})`;
+
+    const uniqueCities = new Set(
+      allVideos.map((v) => v.city).filter((c) => c && c !== 'Unknown')
+    );
+    const cityCount = uniqueCities.size;
+
+    const totalSeconds = allVideos.reduce(
+      (sum, v) => sum + (Number(v.duration_seconds) || 0), 0
+    );
+    const days  = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const archiveStr = `${days} Gün, ${hours} Saat`;
+
+    const videoCount = allVideos.length;
+
+    const latest = allVideos
+      .filter((v) => v.publishedAt)
+      .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))[0];
+    const lastDiscovery = latest?.country_name || '—';
+
+    return { countryScore, cityCount, archiveStr, videoCount, lastDiscovery };
+  }, [allVideos]);
+
+  return (
+    <>
+      {/* ──────────────────────────────────────────────────────────────────────
+          MASAÜSTÜ: tam panel (pointer-events-none → harita sürüklenebilir)
+      ────────────────────────────────────────────────────────────────────── */}
+      <div className="hidden md:block pointer-events-none select-none w-max">
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold tracking-tight text-white leading-tight whitespace-nowrap">
+            Koparan World Atlas
+          </h1>
+          <p className="text-[11px] leading-snug mt-0.5 font-medium whitespace-nowrap text-[#ff7a1a]">
+            Aynılaşan Dünyada Farklılıkların İzinde
+          </p>
+        </div>
+
+        <div className="rounded-xl px-3 py-2.5 w-full bg-black/50 backdrop-blur-[16px] border border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.45)]">
+          <StatRow icon={<Globe size={15} />} label="Dünya Keşfi"  value={stats.countryScore} />
+          <StatRow icon={<Map   size={15} />} label="Şehir Sayısı" value={`${stats.cityCount} şehir`} />
+          <StatRow icon={<Clock size={15} />} label="Toplam Süre"  value={stats.archiveStr} />
+          <StatRow icon={<Video size={15} />} label="Video Sayısı" value={`${stats.videoCount} video`} noBorder />
+
+          <div className="mt-2 pt-2 border-t border-white/[0.08]">
+            <div className="flex items-center gap-1.5 text-white/40 text-[10px] uppercase tracking-[0.12em] mb-0.5">
+              <Compass size={12} />
+              Son Keşif
+            </div>
+            <div className="text-white/85 text-[12px] font-semibold">
+              {stats.lastDiscovery}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────────────────
+          MOBİL: yuvarlak Globe butonu
+      ────────────────────────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-label="İstatistikler"
+        className="md:hidden w-10 h-10 rounded-full
+                   bg-black/50 backdrop-blur-[16px] border border-white/10
+                   shadow-[0_4px_24px_rgba(0,0,0,0.45)]
+                   flex items-center justify-center
+                   text-white/55 hover:text-white transition-colors duration-200"
+      >
+        <Globe size={17} />
+      </button>
+
+      {/* ──────────────────────────────────────────────────────────────────────
+          MOBİL: Portal ile body'ye render — stacking context tamamen kırılır.
+          Backdrop z-[100] > başlık z-[30]; kart z-[110] > backdrop.
+      ────────────────────────────────────────────────────────────────────── */}
+      {open && createPortal(
+        <>
+          {/* Backdrop: küreyi, başlığı ve sloganı tamamen örter */}
+          <div
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* Modal kart: Dynamic Island'ın hemen altında, tertemiz */}
+          <div
+            className="fixed z-[110] top-20 left-4 rounded-2xl px-4 py-3.5 min-w-[260px]
+                       bg-[rgba(8,12,26,0.93)] backdrop-blur-[28px]
+                       border border-white/[0.13]
+                       shadow-[0_8px_48px_rgba(0,0,0,0.7)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Kapat */}
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setOpen(false)}
+                className="text-white/30 hover:text-white/65 transition-colors"
+                aria-label="Kapat"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* İstatistikler */}
+            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1.5">
+              <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
+              <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
+              <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
+              <StatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
+            </div>
+
+            <div className="mt-2.5 pl-1">
+              <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
+                <Compass size={11} />
+                Son Keşif
+              </div>
+              <div className="text-white/80 text-[12px] font-semibold">
+                {stats.lastDiscovery}
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+    </>
+  );
+}
+
+/* ── Yardımcı: tek satır istatistik ──────────────────────────────────────── */
+function StatRow({ icon, label, value, noBorder = false }) {
+  return (
+    <div
+      className={[
+        'flex items-center justify-between gap-4 py-[7px]',
+        noBorder ? '' : 'border-b border-white/[0.07]',
+      ].join(' ')}
+    >
+      <div className="flex items-center gap-1.5 text-white/42 text-[11px] uppercase tracking-[0.1em] whitespace-nowrap">
+        {icon}
+        {label}
+      </div>
+      <div className="text-white/85 text-[13px] font-medium text-right tabular-nums">
+        {value}
+      </div>
+    </div>
+  );
+}
