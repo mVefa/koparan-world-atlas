@@ -41,7 +41,7 @@ export default function StatsPanel({ allVideos }) {
 
   return (
     <>
-      {/* ── MASAÜSTÜ: tam panel — pointer-events-none → harita sürüklenebilir ── */}
+      {/* ── MASAÜSTÜ ─────────────────────────────────────────────────────────── */}
       <div className="hidden md:block pointer-events-none select-none w-max">
         <div className="mb-2">
           <h1 className="text-3xl font-bold tracking-tight text-white leading-tight whitespace-nowrap">
@@ -51,13 +51,11 @@ export default function StatsPanel({ allVideos }) {
             Aynılaşan Dünyada Farklılıkların İzinde
           </p>
         </div>
-
         <div className="rounded-xl px-3 py-2.5 w-full bg-black/50 backdrop-blur-[16px] border border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.45)]">
           <StatRow icon={<Globe size={15} />} label="Dünya Keşfi"  value={stats.countryScore} />
           <StatRow icon={<Map   size={15} />} label="Şehir Sayısı" value={`${stats.cityCount} şehir`} />
           <StatRow icon={<Clock size={15} />} label="Toplam Süre"  value={stats.archiveStr} />
           <StatRow icon={<Video size={15} />} label="Video Sayısı" value={`${stats.videoCount} video`} noBorder />
-
           <div className="mt-2 pt-2 border-t border-white/[0.08]">
             <div className="flex items-center gap-1.5 text-white/40 text-[10px] uppercase tracking-[0.12em] mb-0.5">
               <Compass size={12} />
@@ -70,7 +68,7 @@ export default function StatsPanel({ allVideos }) {
         </div>
       </div>
 
-      {/* ── MOBİL: yuvarlak Globe butonu ─────────────────────────────────────── */}
+      {/* ── MOBİL: Globe butonu ──────────────────────────────────────────────── */}
       <button
         onClick={() => setOpen(true)}
         aria-label="İstatistikler"
@@ -83,16 +81,14 @@ export default function StatsPanel({ allVideos }) {
         <Globe size={17} />
       </button>
 
-      {/* ── MOBİL: Portal → ManifestoPanel ile birebir aynı yapı/koordinat ───── */}
+      {/* ── MOBİL: Portal — ManifestoPanel birebir ikizi ────────────────────── */}
       {open && createPortal(
         <>
-          {/* Backdrop z-[100]: küreyi ve başlığı (z-[30]) tamamen örter */}
           <div
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
 
-          {/* Kart — ManifestoPanel ile aynı konum ve stil */}
           <div className="fixed z-[110] inset-x-4 bottom-[5.5rem] max-w-sm mx-auto
                           rounded-2xl px-5 py-4
                           bg-[rgba(8,12,26,0.93)] backdrop-blur-[28px]
@@ -100,7 +96,7 @@ export default function StatsPanel({ allVideos }) {
                           shadow-[0_8px_48px_rgba(0,0,0,0.7)]
                           animate-in fade-in zoom-in-95 duration-200">
 
-            {/* X — absolute, z-[120] ile her zaman içeriğin üstünde */}
+            {/* X butonu — daima içeriğin üstünde */}
             <button
               onClick={() => setOpen(false)}
               aria-label="Kapat"
@@ -109,17 +105,17 @@ export default function StatsPanel({ allVideos }) {
               <X size={15} />
             </button>
 
-            {/* İstatistik satırları — pr-8 ile X alanı korunur */}
+            {/* İstatistik satırları — pr-8 ile X alanı boş kalır */}
             <div className="pr-8">
-              <StatRow icon={<Globe size={13} />} label="Dünya Keşfi" value={stats.countryScore} />
-              <StatRow icon={<Map   size={13} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
-              <StatRow icon={<Clock size={13} />} label="Süre"        value={stats.archiveStr} />
-              <StatRow icon={<Video size={13} />} label="Video"       value={`${stats.videoCount} video`} noBorder />
+              <MobileStatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
+              <MobileStatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
+              <MobileStatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
+              <MobileStatRow icon={<Video size={14} />} label="Video"       value={`${stats.videoCount} video`} last />
             </div>
 
-            {/* Son Keşif — Manifesto imza bölümü gibi border-t ile ayrılır */}
-            <div className="mt-2.5 pt-2.5 border-t border-white/5">
-              <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-[0.12em] mb-0.5">
+            {/* Son Keşif — Manifesto imza bölümü gibi */}
+            <div className="pt-3 mt-1 border-t border-white/5">
+              <div className="flex items-center gap-1.5 text-white/35 text-[10px] uppercase tracking-wider mb-1">
                 <Compass size={11} />
                 Son Keşif
               </div>
@@ -135,20 +131,30 @@ export default function StatsPanel({ allVideos }) {
   );
 }
 
-/* ── Yardımcı: tek satır istatistik ──────────────────────────────────────── */
+/* ── Masaüstü satır bileşeni ─────────────────────────────────────────────── */
 function StatRow({ icon, label, value, noBorder = false }) {
   return (
-    <div
-      className={[
-        'flex items-center justify-between gap-3 py-[6px]',
-        noBorder ? '' : 'border-b border-white/[0.07]',
-      ].join(' ')}
-    >
-      <div className="flex items-center gap-1.5 text-white/40 text-[11px] tracking-tight uppercase whitespace-nowrap">
+    <div className={['flex items-center justify-between gap-4 py-[7px]', noBorder ? '' : 'border-b border-white/[0.07]'].join(' ')}>
+      <div className="flex items-center gap-1.5 text-white/42 text-[11px] uppercase tracking-[0.1em] whitespace-nowrap">
         {icon}
         {label}
       </div>
-      <div className="text-white/82 text-[11px] font-medium text-right tabular-nums tracking-tight">
+      <div className="text-white/85 text-[13px] font-medium text-right tabular-nums">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* ── Mobil kart satır bileşeni ───────────────────────────────────────────── */
+function MobileStatRow({ icon, label, value, last = false }) {
+  return (
+    <div className={['flex justify-between items-center py-2', last ? '' : 'border-b border-white/5'].join(' ')}>
+      <div className="flex items-center text-[11px] font-bold uppercase tracking-wider text-white/50">
+        <span className="text-white/40 mr-2">{icon}</span>
+        {label}
+      </div>
+      <div className="text-[12px] text-white/90 font-medium tabular-nums">
         {value}
       </div>
     </div>
