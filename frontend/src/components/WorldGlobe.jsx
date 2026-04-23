@@ -138,7 +138,7 @@ export default function WorldGlobe({
       const ctrl = g.controls();
       if (ctrl) {
         ctrl.autoRotate      = true;
-        ctrl.autoRotateSpeed = 0.6;
+        ctrl.autoRotateSpeed = 0.25;
       }
       g.pointOfView({ altitude: 1.7 }, 1500);
     }, 500);
@@ -150,7 +150,7 @@ export default function WorldGlobe({
     const ctrl = globeRef.current?.controls();
     if (!ctrl) return;
     ctrl.autoRotate      = !selectedCountry;
-    ctrl.autoRotateSpeed = 0.6;
+    ctrl.autoRotateSpeed = 0.25;
   }, [selectedCountry]);
 
   // ── Kamera fly-to ─────────────────────────────────────────────────────────
@@ -192,7 +192,7 @@ export default function WorldGlobe({
   const handlePolygonHover = useCallback((poly) => {
     // Kural 1 — dokunmatik cihaz: hover yok
     if (isTouchDeviceRef.current) {
-      setHoverPolygon(null);
+      if (hoverPolygon !== null) setHoverPolygon(null);
       return;
     }
     // Kural 2 — fare ile sürükleme
@@ -201,7 +201,7 @@ export default function WorldGlobe({
       return;
     }
     setHoverPolygon(poly);
-  }, []);
+  }, [hoverPolygon]);
 
   // ── Türetilen veriler ─────────────────────────────────────────────────────
   const selectedCountryIso3 = canonicalCountry(selectedCountry);
@@ -242,7 +242,7 @@ export default function WorldGlobe({
       onPointerDown={() => setHoverPolygon(null)}
       // pointerUp: 50ms gecikmeli temizle — tıklama işlemi tamamlandıktan
       // sonra kalan her türlü hover artığını garantiyle sıfırlar
-      onPointerUp={() => setTimeout(() => setHoverPolygon(null), 50)}
+      onPointerUp={() => setTimeout(() => setHoverPolygon(null), 150)}
     >
       {size.width > 0 && size.height > 0 && (
         <Globe
