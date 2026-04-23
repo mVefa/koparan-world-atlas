@@ -118,13 +118,13 @@ export default function StatsPanel({ allVideos }) {
             <button
               onClick={() => setOpen(false)}
               aria-label="Kapat"
-              className="absolute top-3.5 right-3.5 text-white/30 hover:text-white/65 transition-colors"
+              className="absolute top-4 right-4 z-[120] text-white/30 hover:text-white/65 transition-colors"
             >
               <X size={15} />
             </button>
 
-            {/* İstatistik satırları */}
-            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1">
+            {/* İstatistik satırları — pr-6 ile X butonuyla çakışma önlenir */}
+            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] px-3 py-1 pr-6">
               <StatRow icon={<Globe size={14} />} label="Dünya Keşfi" value={stats.countryScore} />
               <StatRow icon={<Map   size={14} />} label="Şehir"       value={`${stats.cityCount} şehir`} />
               <StatRow icon={<Clock size={14} />} label="Süre"        value={stats.archiveStr} />
