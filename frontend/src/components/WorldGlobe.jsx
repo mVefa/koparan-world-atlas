@@ -158,8 +158,11 @@ export default function WorldGlobe({
     const g = globeRef.current;
     if (!g) return;
     g.controls().autoRotate = false;
-    const latOffset = (60 / 90) * 25 * Math.max(0.4, altitude);
-    g.pointOfView({ lat: clamp(lat + latOffset, -85, 85), lng, altitude }, 1500);
+    g.pointOfView({ 
+      lat: clamp(lat, -85, 85), 
+      lng, 
+      altitude 
+    }, 1500);
   }, []);
 
   // ── Olay işleyiciler ──────────────────────────────────────────────────────
