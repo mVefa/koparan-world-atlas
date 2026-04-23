@@ -56,6 +56,16 @@ export default function WorldGlobe({
    */
   const isDraggingRef = useRef(false);
 
+  /**
+   * Dokunmatik ekran tespiti — mount sırasında bir kez değerlendirip ref'e kaydediyoruz.
+   * `pointer: coarse` = parmak/stylus; `pointer: fine` = fare.
+   * Bu değer session boyunca değişmez, ref yeterli.
+   */
+  const isTouchDeviceRef = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia('(pointer: coarse)').matches
+  );
+
   // ── GeoJSON yükle ──────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -170,11 +180,22 @@ export default function WorldGlobe({
   }, [flyTo, onSelectCountry]);
 
   /**
-   * Polygon hover — sürükleme sırasında asla hover set etme.
-   * Dokunmatik ekranlarda sürükleme esnasında react-globe.gl bazen
-   * anlık hover eventi fırlatır; isDraggingRef guard'ı bunu yakalar.
+   * Polygon hover — iki katmanlı koruma:
+   *
+   * 1. Dokunmatik ekran (pointer: coarse): hover tamamen devre dışı.
+   *    Mobilde sadece tıklama (onPolygonClick) Sidebar'ı açar;
+   *    sürükleme/parmak kaldırma hiçbir görsel iz bırakmaz.
+   *
+   * 2. Sürükleme guard: fare ile kullanımda da sürükleme sırasında
+   *    hover güncellenmez (isDraggingRef).
    */
   const handlePolygonHover = useCallback((poly) => {
+    // Kural 1 — dokunmatik cihaz: hover yok
+    if (isTouchDeviceRef.current) {
+      setHoverPolygon(null);
+      return;
+    }
+    // Kural 2 — fare ile sürükleme
     if (isDraggingRef.current) {
       setHoverPolygon(null);
       return;
@@ -217,8 +238,11 @@ export default function WorldGlobe({
       ref={containerRef}
       className="relative w-full h-full"
       style={{ background: 'radial-gradient(ellipse at center, #0a1229 0%, #05070d 60%, #000 100%)' }}
-      // İlk dokunuşta mevcut hover'ı anında sıfırla (ek güvenlik katmanı)
+      // pointerDown: anında temizle
       onPointerDown={() => setHoverPolygon(null)}
+      // pointerUp: 50ms gecikmeli temizle — tıklama işlemi tamamlandıktan
+      // sonra kalan her türlü hover artığını garantiyle sıfırlar
+      onPointerUp={() => setTimeout(() => setHoverPolygon(null), 50)}
     >
       {size.width > 0 && size.height > 0 && (
         <Globe
