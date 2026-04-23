@@ -42,11 +42,19 @@ export default function WorldGlobe({
   onSelectCountry,
   isShifted,
 }) {
-  const globeRef    = useRef(null);
+  const globeRef     = useRef(null);
   const containerRef = useRef(null);
   const [size, setSize]         = useState({ width: 0, height: 0 });
   const [countries, setCountries] = useState({ features: [] });
   const [hoverPolygon, setHoverPolygon] = useState(null);
+
+  /**
+   * Sürükleme takibi.
+   * OrbitControls 'start' → isDragging = true
+   * OrbitControls 'end'   → isDragging = false
+   * Ref kullanıyoruz çünkü render tetiklemesine gerek yok.
+   */
+  const isDraggingRef = useRef(false);
 
   // ── GeoJSON yükle ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -59,8 +67,6 @@ export default function WorldGlobe({
   }, []);
 
   // ── Container boyutu ───────────────────────────────────────────────────────
-  // ResizeObserver anlık değişiklikleri yakalar; isShifted geçişi bitince
-  // 720ms gecikmeyle bir kez daha ölçüm yapılır (CSS transition sonu).
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -79,7 +85,7 @@ export default function WorldGlobe({
     return () => clearTimeout(t);
   }, [isShifted]);
 
-  // ── Globe hazır: material + damping (tek seferlik) ────────────────────────
+  // ── Globe hazır: material + damping + sürükleme listener'ları ────────────
   const handleGlobeReady = useCallback(() => {
     const g = globeRef.current;
     if (!g) return;
@@ -95,6 +101,23 @@ export default function WorldGlobe({
     ctrl.dampingFactor = 0.08;
     ctrl.minDistance   = 180;
     ctrl.maxDistance   = 600;
+
+    // ── Sticky hover düzeltmesi ──────────────────────────────────────────────
+    // OrbitControls 'start': kullanıcı dokundu/tıkladı → sürükleme başladı.
+    // 'change': kamera hareket ediyor → hover'ı anında sıfırla.
+    // 'end': parmak/fare kalktı → isDragging kapat, hover temizle.
+    ctrl.addEventListener('start', () => {
+      isDraggingRef.current = true;
+      setHoverPolygon(null);
+    });
+    ctrl.addEventListener('change', () => {
+      if (isDraggingRef.current) setHoverPolygon(null);
+    });
+    ctrl.addEventListener('end', () => {
+      isDraggingRef.current = false;
+      // Parmak kalktığında kalan yapışık hover'ı da temizle
+      setHoverPolygon(null);
+    });
   }, []);
 
   // ── İlk yüklenme: 500ms sonra dönüşü başlat + yakınlaş ───────────────────
@@ -130,6 +153,7 @@ export default function WorldGlobe({
   }, []);
 
   // ── Olay işleyiciler ──────────────────────────────────────────────────────
+
   const handlePointClick = useCallback((point) => {
     flyTo(point.lat, point.lng, 0.8);
     onSelectLocation(point);
@@ -144,6 +168,19 @@ export default function WorldGlobe({
     if (c) flyTo(c.lat, c.lng, 1.35);
     onSelectCountry({ id: iso3, name });
   }, [flyTo, onSelectCountry]);
+
+  /**
+   * Polygon hover — sürükleme sırasında asla hover set etme.
+   * Dokunmatik ekranlarda sürükleme esnasında react-globe.gl bazen
+   * anlık hover eventi fırlatır; isDraggingRef guard'ı bunu yakalar.
+   */
+  const handlePolygonHover = useCallback((poly) => {
+    if (isDraggingRef.current) {
+      setHoverPolygon(null);
+      return;
+    }
+    setHoverPolygon(poly);
+  }, []);
 
   // ── Türetilen veriler ─────────────────────────────────────────────────────
   const selectedCountryIso3 = canonicalCountry(selectedCountry);
@@ -162,7 +199,7 @@ export default function WorldGlobe({
   );
 
   const rings = useMemo(() => locations.map((l) => {
-    const locIso      = canonicalCountry(l.country);
+    const locIso       = canonicalCountry(l.country);
     const countryMatch = selectedCountryIso3 && locIso === selectedCountryIso3;
     const cityMatch    = !selectedCity || normalize(l.city) === normalize(selectedCity);
     const isUnknown    = !l.city || l.city.toLowerCase() === 'unknown';
@@ -180,6 +217,8 @@ export default function WorldGlobe({
       ref={containerRef}
       className="relative w-full h-full"
       style={{ background: 'radial-gradient(ellipse at center, #0a1229 0%, #05070d 60%, #000 100%)' }}
+      // İlk dokunuşta mevcut hover'ı anında sıfırla (ek güvenlik katmanı)
+      onPointerDown={() => setHoverPolygon(null)}
     >
       {size.width > 0 && size.height > 0 && (
         <Globe
@@ -205,7 +244,6 @@ export default function WorldGlobe({
             if (iso && iso === selectedCountryIso3) return 'rgba(255, 122, 26, 0.42)';
             if (d === hoverPolygon && visited)       return 'rgba(160, 230, 255, 0.28)';
             if (visited)                             return 'rgba(0, 150, 255, 0.15)';
-            // Gidilmemiş ülke: denizden net ayrılan koyu slate; hover'da biraz parlar
             if (d === hoverPolygon)                  return '#2a2a2e';
             return '#1e2124';
           }}
@@ -215,7 +253,6 @@ export default function WorldGlobe({
             if (iso && iso === selectedCountryIso3) return 'rgba(255, 190, 100, 0.95)';
             if (d === hoverPolygon)                 return 'rgba(140, 220, 255, 0.75)';
             if (iso && visitedIso3s.has(iso))       return 'rgba(60, 160, 255, 0.35)';
-            // Gidilmemiş ülke sınırı: ince ama keskin beyazımsı çizgi
             return 'rgba(255, 255, 255, 0.07)';
           }}
           polygonStrokeWidth={0.5}
@@ -229,7 +266,7 @@ export default function WorldGlobe({
                       ${iso ? `<span style="opacity:0.55;margin-left:6px;font-size:10px;">${escapeHtml(iso)}</span>` : ''}
                     </div>`;
           }}
-          onPolygonHover={setHoverPolygon}
+          onPolygonHover={handlePolygonHover}
           onPolygonClick={handlePolygonClick}
 
           ringsData={rings}
@@ -292,7 +329,7 @@ function escapeHtml(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** Şehir karşılaştırması için string normalize (ülke için kullanılmıyor — ISO3 ile yapılıyor). */
+/** Şehir karşılaştırması için string normalize. */
 export function normalize(s) {
   if (!s) return '';
   return String(s).trim().toLowerCase()
@@ -316,7 +353,6 @@ function extractCountryName(feature) {
 /**
  * Polygon feature'dan ISO Alpha-3 kodu çıkartır.
  * Sıra: ISO_A3 → iso_a3 → ADM0_A3 → adm0_a3 → WB_A3 → wb_a3
- * '-99' gibi Natural Earth placeholder'ları reddedilir.
  */
 function extractIso3(feature) {
   if (!feature?.properties) return '';
