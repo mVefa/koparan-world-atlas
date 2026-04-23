@@ -218,7 +218,7 @@ export default function App() {
       ────────────────────────────────────────────────────────────────────── */}
       <div
         className={[
-          'md:hidden fixed inset-0 z-[19] bg-black/45 backdrop-blur-[4px]',
+          'md:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-md',
           'transition-opacity duration-500',
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         ].join(' ')}
@@ -231,7 +231,7 @@ export default function App() {
       ────────────────────────────────────────────────────────────────────── */}
       <div
         className={[
-          'md:hidden fixed bottom-0 inset-x-0 z-20',
+          'md:hidden fixed bottom-0 inset-x-0 z-[70]',
           'h-[82vh] bg-space-800/95 backdrop-blur-[20px]',
           'rounded-t-2xl border-t border-white/[0.12]',
           'shadow-[0_-8px_40px_rgba(0,0,0,0.55)]',

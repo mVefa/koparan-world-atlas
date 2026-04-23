@@ -91,7 +91,7 @@ export default function StatsPanel({ allVideos }) {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="İstatistikler"
-        className="md:hidden w-10 h-10 rounded-full
+        className="md:hidden fixed bottom-5 left-16 z-10 w-10 h-10 rounded-full
                    bg-black/50 backdrop-blur-[16px] border border-white/10
                    shadow-[0_4px_24px_rgba(0,0,0,0.45)]
                    flex items-center justify-center
