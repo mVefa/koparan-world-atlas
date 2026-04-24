@@ -2,7 +2,7 @@
 
 > *Aynılaşan Dünyada Farklılıkların İzinde*
 
-Seyahat YouTuber'ı **Muhammet Fatih Koparan**'ın kanalındaki tüm videoları, interaktif bir 3D dünya küresi üzerinde haritalayan açık kaynaklı bir proje. Her gece GitHub Actions ile otomatik olarak güncellenir; yeni video yayınlanır yayınlanmaz haritaya işlenir.
+Seyahat YouTuber'ı **Fatih Koparan**'ın kanalındaki tüm videoları, interaktif bir 3D dünya küresi üzerinde haritalayan açık kaynaklı bir proje. Her gece GitHub Actions ile otomatik olarak güncellenir; yeni video yayınlanır yayınlanmaz haritaya işlenir.
 
 **[→ Canlı Demo](https://koparan-world-atlas.vercel.app)**
 
@@ -12,7 +12,7 @@ Seyahat YouTuber'ı **Muhammet Fatih Koparan**'ın kanalındaki tüm videoları,
 
 | Masaüstü | Mobil |
 |---|---|
-| 3D küre + sağ panel | Alt bar + yüzen kartlar |
+| ![Masaüstü Görünümü](./images/desktop.png) | ![Mobil Görünüm](./images/mobile.jpeg) |
 
 ---
 
@@ -74,10 +74,10 @@ Hiçbir manuel adım yok. Video çıkar, harita güncellenir.
 
 | | |
 |---|---|
-| Toplam Video | 449 |
+| Toplam Video | 450 |
 | Keşfedilen Ülke | 54 / 195 |
 | Keşfedilen Şehir | 186 |
-| Toplam İçerik | ~246 saat |
+| Toplam İçerik | ~247 saat |
 
 ---
 
