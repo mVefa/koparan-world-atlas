@@ -3,7 +3,7 @@ name: Update World Atlas Data
 on:
   schedule:
     - cron: '0 0 * * *' # Her gece 00:00 (UTC) - Türkiye saatiyle 03:00
-  workflow_dispatch: # Bu satır "Actions" sekmesinde "Run workflow" butonu çıkarır
+  workflow_dispatch: # Manuel tetikleme butonu
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12' # Google API uyarılarını önlemek için 3.12'ye yükseltildi
 
       - name: Install Dependencies
         run: |
@@ -30,8 +30,18 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-          git config --local user.email "yoksulmuhammet@gmail.com" # Kendi mailini yaz
-          git config --local user.name "mVefa" # Kendi kullanıcı adını yaz
+          git config --local user.email "yoksulmuhammet@gmail.com"
+          git config --local user.name "mVefa"
+          
+          # Dosyayı staging area'ya ekle
           git add frontend/src/data/final_map_with_coords.json
-          git commit -m "chore: automated data update"
-          git push
+          
+          # Eğer staging area'da (index) bir değişiklik varsa commit et
+          # Değişiklik yoksa git diff --cached --quiet komutu 0 döner, if bloğu çalışmaz
+          if ! git diff --cached --quiet; then
+            echo "[BİLGİ] Değişiklik tespit edildi, commit süreci başlatılıyor."
+            git commit -m "chore: automated data update"
+            git push
+          else
+            echo "[BİLGİ] Yeni veri yok, çalışma ağacı temiz. İşlem atlanıyor."
+          fi
