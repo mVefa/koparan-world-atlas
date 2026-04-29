@@ -45,7 +45,7 @@ print(f"[BİLGİ] Hafıza yüklendi. Toplam {len(current_data)} video kayıtlı.
 
 # SABİTLER
 CHANNEL_ID = "UCHut-IQXip7mtXyC3GOiQ1A"
-SHORTS_THRESHOLD_SEC = 60
+SHORTS_THRESHOLD_SEC = 180 # 3 dakika = 180 saniye, bu sürenin altındakiler Shorts olarak kabul edilecek
 
 def get_video_duration_seconds(duration_str):
     """
